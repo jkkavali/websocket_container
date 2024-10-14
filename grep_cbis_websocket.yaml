@@ -1,0 +1,12 @@
+---
+- name: Grep cbis_websocket from docker-compose.yaml
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Fetch cbis_websocket section from docker-compose.yaml
+      command: "grep -i cbis_websocket -A7 /root/cbis/docker-compose.yaml"
+      register: grep_output
+
+    - name: Display the output
+      debug:
+        var: grep_output.stdout
