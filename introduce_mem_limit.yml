@@ -1,0 +1,15 @@
+---
+- name: Introduce "mem_limit" parameter in cbis_websocket docker-compose.yaml
+  hosts: all
+  become: yes  # To ensure the sed command is run with elevated permissions
+  tasks:
+    - name: Ensure mem_limit parameter is added to cbis_websocket container in docker-compose.yaml
+      ansible.builtin.shell: |
+        sed -i 's/container_name: cbis_websocket/&\n    mem_limit: 256M/' /root/cbis/docker-compose.yaml
+      args:
+        warn: false  # Suppress warning for non-interactive shell
+      register: modify_mem_limit
+
+    - name: Display modification status
+      debug:
+        var: modify_mem_limit.stdout
