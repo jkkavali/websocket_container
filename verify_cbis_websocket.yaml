@@ -1,0 +1,18 @@
+---
+- name: Verify cbis_websocket container status
+  hosts: master
+  become: yes
+  tasks:
+    - name: Check for cbis_websocket container
+      shell: podman ps | grep -i web
+      register: podman_output
+
+    - name: Ensure cbis_websocket container is running and healthy
+      debug:
+        msg: "{{ podman_output.stdout }}"
+      failed_when: "'cbis_websocket' not in podman_output.stdout or 'healthy' not in podman_output.stdout"
+
+    - name: Print success message
+      when: "'cbis_websocket' in podman_output.stdout and 'healthy' in podman_output.stdout"
+      debug:
+        msg: "cbis_websocket container is running and healthy"
