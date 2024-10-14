@@ -1,0 +1,23 @@
+---
+- name: Verify memory limit of cbis_websocket container
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Read the docker-compose.yaml file
+      slurp:
+        src: /root/cbis/docker-compose.yaml
+      register: compose_file
+
+    - name: Parse the docker-compose.yaml as YAML
+      set_fact:
+        compose_data: "{{ compose_file.content | b64decode | from_yaml }}"
+
+    - name: Check if cbis_websocket container exists in the configuration
+      fail:
+        msg: "The cbis_websocket container is not defined in the docker-compose.yaml."
+      when: compose_data.services.cbis_websocket is not defined
+
+    - name: Verify and display memory limit for cbis_websocket container
+      debug:
+        msg: "Memory limit for cbis_websocket: {{ compose_data.services.cbis_websocket.deploy.resources.limits.memory | default('Not set') }}"
+
