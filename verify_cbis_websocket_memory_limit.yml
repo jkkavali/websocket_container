@@ -1,0 +1,27 @@
+---
+- name: Verify memory limit inside cbis_websocket container with Podman
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Ensure cbis_websocket container is running with Podman
+      command: podman ps --filter name=cbis_websocket --format '{{"{{.Status}}"}}'
+      register: podman_container_status
+      changed_when: false
+
+    - name: Fail if the cbis_websocket container is not running
+      fail:
+        msg: "The cbis_websocket container is not running."
+      when: "'Up' not in podman_container_status.stdout"
+
+    - name: Get memory limit of cbis_websocket container from cgroup
+      command: podman exec cbis_websocket cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+      register: memory_limit
+      changed_when: false
+
+    - name: Convert memory limit to human-readable format
+      set_fact:
+        memory_in_mb: "{{ (memory_limit.stdout | int) // 1048576 }} MB"
+
+    - name: Display the memory limit inside the cbis_websocket container
+      debug:
+        msg: "Memory limit inside cbis_websocket container: {{ memory_in_mb }}"
